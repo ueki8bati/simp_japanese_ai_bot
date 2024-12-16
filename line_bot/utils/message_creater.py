@@ -14,6 +14,9 @@ import zenhan
 from pyknp import Juman
 import sentencepiece
 import json
+from pykakasi import kakasi
+import re
+import shutil
 
 logging.basicConfig(
     format='%(name)s | %(message)s',
@@ -254,6 +257,8 @@ def main(args):
     # 入力用ファイルを指定する
     input_text = '/home/yuki_ueda/AI_line_bot/line_bot/utils/output_llm.txt'
 
+    copy_text = '/home/yuki_ueda/AI_line_bot/line_bot/utils/output_llm_copy.txt'
+
     NG_phrases = load_ng_phrases(NG_FILE_PATH)
 
     
@@ -270,6 +275,9 @@ def main(args):
     
     # 行数カウンター
     line_index = 0  # 現在処理中の行のインデックス
+
+    with open(copy_text, 'r', encoding='utf-8') as f:
+        input_lines_copy = [line.strip().replace(" ", "").replace("　", "") for line in f.readlines()]
     
 
     for inputs in buffered_read(input_text, args.buffer_size):
@@ -317,6 +325,7 @@ def main(args):
             # 現在の行をキーワードとして取得
             current_keyword = input_lines[line_index]
             current_keyword = current_keyword.rstrip('。')
+            EoS_key = input_lines_copy[line_index]
             line_index += 1  # 次の行のインデックスに進める
 
             # キーワードに基づいてNGワードを取得
@@ -346,6 +355,8 @@ def main(args):
 
                 # NG文に該当しないかを確認
                 if not any(ng in detok_hypo_str for ng in filter_ng_phrases):  # NGフレーズが含まれていない場合
+                    if not EoS_key.endswith('。'):
+                        detok_hypo_str = detok_hypo_str.rstrip('。')
                     if hypo_i == 0:
                         output_texts.append(detok_hypo_str)
                     elif hypo_i == 1:
@@ -444,6 +455,67 @@ def cli_main():
     if get_img_or_text:
         img_or_text = int(get_img_or_text)
 
+    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'r', encoding='utf-8') as file:
+        get_same_number = file.readline().strip()  # .strip() で前後の空白や改行を削除
+    if get_same_number:
+        yomi = int(get_same_number)
+    
+    file_path_output_copy = "/home/yuki_ueda/AI_line_bot/line_bot/utils/last_output_copy.txt"
+
+    if yomi == 2:
+        
+        shutil.copyfile(file_path_output, file_path_output_copy)
+
+        # Initialize kakasi
+        kks = kakasi()
+
+        # Define a function to check if a string contains kanji
+        def contains_kanji(word):
+            return any(re.match(r'[\u4e00-\u9faf]', char) for char in word)
+
+        # Input and output file paths
+
+        # Read input file
+        with open(file_path_output_copy, "r", encoding="utf-8") as infile:
+            lines = infile.readlines()
+
+        # Process each line
+        output_lines = []
+        for line in lines:
+            result = kks.convert(line.strip())
+            output = ""
+            for item in result:
+                orig = item['orig']
+                hira = item['hira']
+                if contains_kanji(orig):  # Check if the word contains any kanji
+                    output += f"{orig}[{hira}]"
+                else:
+                    output += orig
+            output_lines.append(output)
+
+        # Write the processed lines to the output file
+        with open(file_path_output, "w", encoding="utf-8") as outfile:
+            outfile.write("\n".join(output_lines))
+
+    elif yomi == 3:
+        shutil.copyfile(file_path_output, file_path_output_copy)
+        # Initialize kakasi
+        kks = kakasi()
+
+        # Read input file
+        with open(file_path_output_copy, "r", encoding="utf-8") as infile:
+            lines = infile.readlines()
+
+        # Convert each line to Hiragana using the new API
+        output_lines = []
+        for line in lines:
+            result = kks.convert(line.strip())
+            converted_line = "".join([item['hira'] for item in result])
+            output_lines.append(converted_line)
+
+        # Write the converted lines to the output file
+        with open(file_path_output, "w", encoding="utf-8") as outfile:
+            outfile.write("\n".join(output_lines))
 
 
     with open(file_path_output, 'r') as file:
@@ -455,8 +527,8 @@ def cli_main():
                 last_text = ''.join([line.strip() for line in all_lines])  # 各行の改行を削除して一つの文字列に結合
         else:
             last_text = "<やさしい日本語に変換できませんでした>"
-       
-
+        
+        #last_text = furigana.add_furigana(last_text)
 
     return last_text
 

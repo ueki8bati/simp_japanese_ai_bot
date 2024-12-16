@@ -158,6 +158,7 @@ def write_ocr_to_file(ocr_output_path):
     
     # 結果の確認と書き込み
     output_file_path = "/home/yuki_ueda/AI_line_bot/line_bot/utils/output_llm.txt"  # 書き込み先のファイル名を指定
+    copy_file_path = "/home/yuki_ueda/AI_line_bot/line_bot/utils/output_llm_copy.txt"
     
 
     with open(output_file_path, "w", encoding="utf-8") as output_file:
@@ -165,6 +166,15 @@ def write_ocr_to_file(ocr_output_path):
         for sentence in final_sentences:
             sentence = sentence.strip()  # 先頭や末尾の空白、改行、BOMを削除
             if sentence:  # 空でない行のみ書き込み
+                if not sentence.endswith('。'):
+                    sentence += '。'
                 output_file.write(f"{sentence}\n")
                 count += 1
 
+    with open(copy_file_path, "w", encoding="utf-8") as output_file:
+        count = 1
+        for sentence in final_sentences:
+            sentence = sentence.strip()  # 先頭や末尾の空白、改行、BOMを削除
+            if sentence:  # 空でない行のみ書き込み
+                output_file.write(f"{sentence}\n")
+                count += 1

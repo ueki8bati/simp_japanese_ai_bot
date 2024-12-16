@@ -65,7 +65,7 @@ def index(request):
                     keyword = f.read().strip()
                 
                 # snow_matcha_test_tgt.txtからNGワードを取得
-                    with open("/home/yuki_ueda/AI_line_bot/line_bot/utils/" + SAVE_MODEL_NAME + "_test_tgt.txt", 'r', encoding='utf-8') as f:
+                    with open("/home/yuki_ueda/AI_line_bot/line_bot/utils/last_output.txt", 'r', encoding='utf-8') as f:
                         ng_phrase = f.read().strip()
                         keyword = keyword.rstrip('。')
                         ng_phrase = ng_phrase.rstrip('。')
@@ -124,6 +124,45 @@ def index(request):
                     file.write(str(i))
                     complete_message = "設定モード:終了"
                     line_message = LineMessage(messages=[send_text_message(complete_message)])
+            elif message['text'] == "furigana":
+                if i == 1:
+                    i = 2
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "設定モード:終了\nふりがな付与:開始"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
+                else:
+                    i = 2
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "ふりがな付与:開始"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
+            elif message['text'] == "hiragana":
+                if i == 1:
+                    i = 3
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "設定モード:終了\nひらがな化:開始"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
+                else:
+                    i = 3
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "ひらがな化:開始"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
+            elif message['text'] == "tujyo":
+                if i == 1:
+                    i = 0
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "設定モード:終了\nフリガナ付与・ひらがな化:終了"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
+                else:
+                    i = 0
+                    with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/i_views.txt', 'w', encoding='utf-8') as file:
+                        file.write(str(i))
+                        complete_message = "フリガナ付与・ひらがな化:終了"
+                        line_message = LineMessage(messages=[send_text_message(complete_message)])
             elif message['text'] == "candidates":
                 s = 1
                 with open('/home/yuki_ueda/AI_line_bot/line_bot/utils/3_views.txt', 'w', encoding='utf-8') as file:
